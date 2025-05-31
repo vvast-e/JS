@@ -1,8 +1,8 @@
 import { ajax } from "../../../modules/ajax.js";
 import { stockUrls } from "../../../modules/stockUrl.js";
 import { ProductCard } from "../../components/Product-Card";
-import {ProductPage} from "../product";
-import {CreateForm} from "../../components/CreateForm";
+import { ProductPage } from "../product";
+import { CreateForm } from "../../components/CreateForm";
 
 export class MainPage {
     constructor(parent) {
@@ -10,47 +10,38 @@ export class MainPage {
         this.container = parent;
         this.pageRoot = document.createElement('div');
         this.pageRoot.className = 'main-page';
-
+        this.formInitialized = false; // Флаг для формы создания
     }
 
-    async getData() {
+    async render() {
+        this.parent.innerHTML = '';
+        this.parent.appendChild(this.pageRoot);
+        this.pageRoot.innerHTML = this.getHTML();
+
         try {
-            ajax.get(
-                stockUrls.getStocks(),
-                (data, status) => {
-                    if (status === 200 && data) {
-                        this.renderData(data);
-                    } else {
-                        this.showError(`Ошибка загрузки: ${status}`);
-                    }
-                },
-                (error) => {
-                    this.showError(`Ошибка сети: ${error}`);
-                }
-            );
+            const items = await ajax.get(stockUrls.getStocks());
+            this.renderData(items);
         } catch (error) {
-            this.showError(`Неизвестная ошибка: ${error}`);
+            this.showError(`Не удалось загрузить данные: ${error.message}`);
         }
     }
 
-    renderData(items) {
+    async renderData(items) {
         if (!items || !Array.isArray(items)) {
             console.error('Получены некорректные данные:', items);
             this.showError('Невозможно отобразить карточки');
             return;
         }
 
+        // Очищаем pageRoot, но оставляем заголовок
+        const header = this.pageRoot.querySelector('.main-header');
         this.pageRoot.innerHTML = '';
+        if (header) this.pageRoot.appendChild(header);
 
-        const cardsContainer = this.pageRoot.querySelector('.cards-container') || document.createElement('div');
-        if (!cardsContainer.className.includes('cards-container')) {
-            cardsContainer.className = 'cards-container';
-            this.pageRoot.appendChild(cardsContainer);
-        }
-        cardsContainer.innerHTML = '';
-
+        const cardsContainer = document.createElement('div');
+        cardsContainer.className = 'cards-container';
         cardsContainer.style.display = 'flex';
-        cardsContainer.style.flexWrap = 'wrap';      // Перенос на следующую строку при нехватке места
+        cardsContainer.style.flexWrap = 'wrap';
         cardsContainer.style.gap = '20px';
 
         items.forEach(item => {
@@ -71,16 +62,26 @@ export class MainPage {
                 console.error('Ошибка рендеринга карточки:', e);
             }
         });
-        const createFormContainer = document.createElement('div');
-        this.pageRoot.prepend(createFormContainer);
 
-        new CreateForm(createFormContainer, (newCard) => {
-            const cardWrapper = document.createElement('div');
-            const productCard = new ProductCard(cardWrapper);
-            productCard.render(newCard, () => this.clickCard(newCard.id));
+        // Добавляем форму создания один раз
+        if (!this.formInitialized) {
+            const createFormContainer = document.createElement('div');
+            new CreateForm(createFormContainer, async (newCard) => {
+                try {
+                    const cardWrapper = document.createElement('div');
+                    const productCard = new ProductCard(cardWrapper);
+                    productCard.render(newCard, () => this.clickCard(newCard.id));
+                    cardsContainer.appendChild(cardWrapper);
+                } catch (e) {
+                    console.error('Ошибка при добавлении новой карточки:', e);
+                }
+            }).render();
 
-            cardsContainer.appendChild(cardWrapper);
-        }).render();
+            this.pageRoot.prepend(createFormContainer);
+            this.formInitialized = true;
+        }
+
+        this.pageRoot.appendChild(cardsContainer);
     }
 
     clickCard(id) {
@@ -92,6 +93,7 @@ export class MainPage {
         const errorElement = document.createElement('div');
         errorElement.className = 'error-message';
         errorElement.textContent = message;
+
         this.pageRoot.innerHTML = '';
         this.pageRoot.appendChild(errorElement);
     }
@@ -101,16 +103,6 @@ export class MainPage {
             <div class="main-header">
                 <h1>Кошечки</h1>
             </div>
-            <div class="cards-container"></div>
-            <div class="loading">Загрузка данных...</div>
         `;
-    }
-
-
-    render() {
-        this.parent.innerHTML = '';
-        this.parent.appendChild(this.pageRoot);
-        this.pageRoot.innerHTML = this.getHTML();
-        this.getData();
     }
 }
