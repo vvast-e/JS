@@ -2,14 +2,14 @@ import { ajax } from "../../../modules/ajax.js";
 import { stockUrls } from "../../../modules/stockUrl.js";
 
 export class EditForm {
-    constructor(parent, stockId, initialData) {
-        this.parent = parent;         // DOM-элемент для вставки формы
-        this.stockId = stockId;      // ID редактируемой карточки
-        this.initialData = initialData; // Начальные данные карточки
+    constructor(parent, stockId, initialData, onSubmit) {
+        this.parent = parent;
+        this.stockId = stockId;
+        this.initialData = initialData;
+        this.onSubmit = onSubmit;
     }
 
     render() {
-        // Создаем HTML форму с полями для редактирования
         this.parent.innerHTML = `
             <form class="edit-form">
                 <div class="form-group">
@@ -24,36 +24,30 @@ export class EditForm {
                     <label>URL изображения:</label>
                     <input type="text" name="src" value="${this.initialData.src}">
                 </div>
-                <button type="submit" class="save-btn">Сохранить изменения</button>
+                <button type="submit" class="save-btn btn btn-success">Сохранить изменения</button>
             </form>
         `;
 
-        // Навешиваем обработчик отправки формы
-        this.parent.querySelector('form').addEventListener('submit', this.handleSubmit.bind(this));
+        const form = this.parent.querySelector('.edit-form');
+        form.addEventListener('submit', this.handleSubmit.bind(this));
     }
 
-    handleSubmit(e) {
+    async handleSubmit(e) {
         e.preventDefault();
 
-        // Собираем данные из формы
         const formData = {
-            title: e.target.title.value,
-            text: e.target.text.value,
-            src: e.target.src.value
+            title: e.target.title.value.trim(),
+            text: e.target.text.value.trim(),
+            src: e.target.src.value.trim()
         };
 
-        // Отправляем PUT запрос для полного обновления
-        ajax.put(
-            stockUrls.replaceStockById(this.stockId),
-            formData,
-            (data, status) => {
-                if (status === 200) {
-                    alert('Данные успешно обновлены!');
-                    // Можно добавить перезагрузку данных или переход на другую страницу
-                } else {
-                    alert('Ошибка при обновлении данных');
-                }
-            }
-        );
+        try {
+            const data = await ajax.put(stockUrls.replaceStockById(this.stockId), formData);
+            alert('Данные успешно обновлены!');
+            this.onSubmit(data); // передаём обновлённые данные
+        } catch (error) {
+            alert('Ошибка при сохранении изменений');
+            console.error('Ошибка PUT-запроса:', error);
+        }
     }
 }

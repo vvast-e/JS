@@ -1,0 +1,19 @@
+import { CreateStockDto } from './dto/create-stock.dto';
+import { UpdateStockDto } from './dto/update-stock.dto';
+import { Stock } from './entities/stock.entity';
+import { FileService } from '../file.service';
+export declare class StocksService {
+    private fileService;
+    constructor(fileService: FileService<Stock[]>);
+    create(createStockDto: CreateStockDto): {
+        id: number;
+        src: string;
+        title: string;
+        text: string;
+    };
+    findAll(title?: string): Stock[];
+    findOne(id: number): Stock | null;
+    update(id: number, updateStockDto: UpdateStockDto): void;
+    remove(id: number): void;
+    replace(id: number, createStockDto: CreateStockDto): void;
+}

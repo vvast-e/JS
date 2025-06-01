@@ -16,9 +16,9 @@ export class Ajax {
     async post(url, data) {
         try {
             const response = await fetch(url, {
-                method: 'POST',
+                method: "POST",
                 headers: {
-                    'Content-Type': 'application/json'
+                    "Content-Type": "application/json"
                 },
                 body: JSON.stringify(data)
             });
@@ -27,7 +27,13 @@ export class Ajax {
                 throw new Error(`Ошибка POST-запроса: ${response.status}`);
             }
 
-            return await response.json();
+            const contentType = response.headers.get('content-type');
+            let result = {};
+            if (contentType && contentType.includes('application/json')) {
+                result = await response.json();
+            }
+
+            return result;
         } catch (error) {
             console.error('Ошибка отправки данных:', error);
             throw error;
@@ -65,9 +71,15 @@ export class Ajax {
                 throw new Error(`Ошибка DELETE-запроса: ${response.status}`);
             }
 
-            return await response.json();
+            // Проверяем, есть ли контент в ответе
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return await response.json(); // только если это JSON
+            } else {
+                return {};
+            }
         } catch (error) {
-            console.error('Ошибка удаления:', error);
+            console.error('Ошибка при удалении:', error);
             throw error;
         }
     }

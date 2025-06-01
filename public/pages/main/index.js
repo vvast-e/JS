@@ -1,8 +1,8 @@
-import { ajax } from "../../../modules/ajax.js";
-import { stockUrls } from "../../../modules/stockUrl.js";
-import { ProductCard } from "../../components/Product-Card";
-import { ProductPage } from "../product";
-import { CreateForm } from "../../components/CreateForm";
+import {ajax} from "../../../modules/ajax.js";
+import {stockUrls} from "../../../modules/stockUrl.js";
+import {ProductCard} from "../../components/Product-Card";
+import {ProductPage} from "../product";
+import {CreateForm} from "../../components/CreateForm";
 
 export class MainPage {
     constructor(parent) {
@@ -10,7 +10,15 @@ export class MainPage {
         this.container = parent;
         this.pageRoot = document.createElement('div');
         this.pageRoot.className = 'main-page';
-        this.formInitialized = false; // Флаг для формы создания
+    }
+
+    async getData() {
+        try {
+            return await ajax.get(stockUrls.getStocks());
+        } catch (error) {
+            console.error('Ошибка получения данных:', error);
+            throw error;
+        }
     }
 
     async render() {
@@ -32,6 +40,8 @@ export class MainPage {
             this.showError('Невозможно отобразить карточки');
             return;
         }
+
+        this.pageRoot.innerHTML = '';
 
         // Очищаем pageRoot, но оставляем заголовок
         const header = this.pageRoot.querySelector('.main-header');
@@ -64,22 +74,19 @@ export class MainPage {
         });
 
         // Добавляем форму создания один раз
-        if (!this.formInitialized) {
-            const createFormContainer = document.createElement('div');
-            new CreateForm(createFormContainer, async (newCard) => {
-                try {
-                    const cardWrapper = document.createElement('div');
-                    const productCard = new ProductCard(cardWrapper);
-                    productCard.render(newCard, () => this.clickCard(newCard.id));
-                    cardsContainer.appendChild(cardWrapper);
-                } catch (e) {
-                    console.error('Ошибка при добавлении новой карточки:', e);
-                }
-            }).render();
 
-            this.pageRoot.prepend(createFormContainer);
-            this.formInitialized = true;
-        }
+        const createFormContainer = document.createElement('div');
+        new CreateForm(createFormContainer, async (newCard) => {
+            try {
+                const cardWrapper = document.createElement('div');
+                const productCard = new ProductCard(cardWrapper);
+                productCard.render(newCard, () => this.clickCard(newCard.id));
+                cardsContainer.appendChild(cardWrapper);
+            } catch (e) {
+                console.error('Ошибка при добавлении новой карточки:', e);
+            }
+        }).render();
+        this.pageRoot.prepend(createFormContainer);
 
         this.pageRoot.appendChild(cardsContainer);
     }

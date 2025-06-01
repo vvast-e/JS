@@ -31,26 +31,22 @@ export class CreateForm {
         form.addEventListener('submit', this.handleSubmit.bind(this));
     }
 
-    handleSubmit(e) {
+    async handleSubmit(e) {
         e.preventDefault();
 
         const formData = {
-            title: e.target.title.value,
-            text: e.target.text.value,
-            src: e.target.src.value,
+            title: e.target.title.value.trim(),
+            text: e.target.text.value.trim(),
+            src: e.target.src.value.trim(),
         };
 
-        ajax.post(
-            stockUrls.createStock(),
-            formData,
-            (data, status) => {
-                if (status === 201) {
-                    alert('Карточка успешно создана!');
-                    this.onCreate(data); // Передаём данные новой карточки
-                } else {
-                    alert('Ошибка при создании карточки');
-                }
-            }
-        );
+        try {
+            const data = await ajax.post(stockUrls.createStock(), formData);
+            alert('Карточка успешно создана!');
+            this.onCreate(data); // Передаём новую карточку обратно
+        } catch (error) {
+            alert('Ошибка при создании карточки');
+            console.error('Ошибка создания карточки:', error);
+        }
     }
 }

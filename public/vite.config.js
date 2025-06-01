@@ -6,4 +6,13 @@ export default defineConfig({
         emptyOutDir: true, // Очищает папку перед сборкой
         assetsDir: 'assets', // Путь для сборки ассетов
     },
+    server: {
+        proxy: {
+            '/stocks': {
+                target: 'http://localhost:3000/stocks', // Целевой сервер
+                changeOrigin: true,
+                secure: false,
+            },
+        },
+    },
 });

@@ -7,13 +7,13 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "dev": "vite --root ./public",
-    "build": "vite build --root ./public",
-    "preview": "vite preview --root ./public"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@nestjs/serve-static": "^5.0.3",
-    "bootstrap": "^5.3.3",
+    "bootstrap": "^5.3.6",
     "serve-static": "^2.2.0"
   },
   "devDependencies": {

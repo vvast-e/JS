@@ -28,11 +28,11 @@ export class ProductPage {
         try {
             await ajax.delete(stockUrls.removeStockById(this.id));
             alert('Карточка успешно удалена');
-            this.mainPage.getData(); // Обновляем список на главной странице
+            this.mainPage.getData(); // Обновляем список
             this.clickBack(); // Возвращаемся назад
         } catch (error) {
-            console.error("Ошибка при удалении карточки:", error);
             alert('Ошибка при удалении карточки');
+            console.error('Ошибка DELETE-запроса:', error);
         }
     }
 
@@ -67,7 +67,7 @@ export class ProductPage {
                     this.toggleEditMode();
                 } catch (error) {
                     alert('Ошибка при сохранении изменений');
-                    console.error('Ошибка PUT-запроса:', error);
+                    console.error('Ошибка редактирования:', error);
                 }
             }
         ).render();
